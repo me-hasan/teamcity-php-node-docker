@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  teamcity-server:
+    container_name: teamcity-server
+    hostname: teamcity-server
+    image: jetbrains/teamcity-server
+    restart: always
+    ports:
+      - "8111:8111"
+    volumes:
+      - ./teamcity-data:/data/teamcity_server/datadir
+      - ./logs:/opt/teamcity/logs
+    networks:
+      - wingsfinnet
+
+  teamcity-agent:
+    build:
+      context: .  # Ensure Dockerfile is in this directory
+      dockerfile: Dockerfile
+    container_name: teamcity-agent
+    hostname: teamcity-agent
+    restart: always
+    environment:
+      - SERVER_URL=http://teamcity-server:8111  # Ensure this matches your TeamCity server URL
+    volumes:
+      - ./agent-data/conf:/opt/buildagent/conf
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./agent-data:/opt/buildagent
+    networks:
+      - wingsfinnet
+
+networks:
+  wingsfinnet:
+    external: true  # Ensure this network is created externally
